@@ -39,12 +39,38 @@
             margin-top: 10px;
         }
     </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+</head>
+<body>
+    <h1 class="center">Medidor de humor 0 igual a nível baixo e 4 é extremo</h1>
 
-        const firebaseConfig = {
+    <div id="login-container" class="center">
+        <h3>Login</h3>
+        <input type="email" id="email" placeholder="Email" required>
+        <br>
+        <input type="password" id="password" placeholder="Password" required>
+        <br>
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="content-container" style="display: none;">
+        <label for="titulo" style="color: white;">Título do Gráfico:</label>
+        <br>
+        <input type="text" id="titulo" placeholder="Digite o título">
+        <br>
+        <p style="color: white;">Clique no botão para adicionar um novo dado:</p>
+        <div class="button-center">
+            <button onclick="gerarGrafico()" id="gerar-grafico">Gerar Gráfico</button>
+        </div>
+        <br>
+        <div id="graficos-container"></div>
+    </div>
+
+    <script>
+        // Initialize Firebase with your project's configuration
+        var firebaseConfig = {
                 apiKey: "AIzaSyCTsB2tzgpaVYlIZxkd3ZJRtKbeEcg9dyM",
                 authDomain: "amaterasu-34620.firebaseapp.com",
                 projectId: "amaterasu-34620",
@@ -54,46 +80,29 @@
                 measurementId: "G-HVSNTXB2NR
         };
 
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth();
+        firebase.initializeApp(firebaseConfig);
 
-        function registrarUsuario() {
+        // Login function
+        function login() {
             var email = document.getElementById('email').value;
-            var senha = document.getElementById('senha').value;
+            var password = document.getElementById('password').value;
 
-            createUserWithEmailAndPassword(auth, email, senha)
-                .then((userCredential) => {
-                    // Usuário criado com sucesso
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(function (userCredential) {
+                    // Login successful
                     var user = userCredential.user;
-                    console.log('Usuário criado:', user);
-                    window.location.href = "pagina-de-redirecionamento.html"; // Redireciona para a página de redirecionamento após o registro
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('content-container').style.display = 'block';
                 })
-                .catch((error) => {
-                    // Ocorreu um erro ao criar o usuário
+                .catch(function (error) {
+                    // Login error
                     var errorCode = error.code;
                     var errorMessage = error.message;
-                    console.error('Erro ao criar usuário:', errorCode, errorMessage);
+                    console.error(errorCode, errorMessage);
+                    alert('Login failed. Please check your credentials.');
                 });
         }
-    </script>
-</head>
-<body>
-    <h1 class="center">Medidor de humor 0 igual a nível baixo e 4 é extremo</h1>
 
-    <label for="titulo" style="color: white;">Título do Gráfico:</label>
-    <br>
-    <input type="text" id="titulo" placeholder="Digite o título">
-    <br>
-    <p style="color: white;">Clique no botão para adicionar um novo dado:</p>
-    <div class="button-center">
-        <button onclick="gerarGrafico()" id="gerar-grafico">Gerar Gráfico</button>
-    </div>
-    <br>
-    <div id="graficos-container"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
         var graficos = [];
         var limiteGraficos = 4;
         var valorMaximo = 4;
