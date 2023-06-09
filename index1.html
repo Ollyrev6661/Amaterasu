@@ -2,36 +2,195 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Redirecionamento para Autenticação do Google</title>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-    <script>
-        // Inicialize o Firebase com as configurações do seu projeto
-        var firebaseConfig = {
+    <title>Amaterasu</title>
+    <style>
+        body {
+            text-align: center;
+            background-image: url("https://i.imgur.com/UocIPRm.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        .grafico-container {
+            display: inline-block;
+            margin: 10px;
+            border: 1px solid #f5eded;
+            padding: 10px;
+            background-color: #404040; /* Cor de chumbo */
+            color: white; /* Texto branco */
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .button-center {
+            display: flex;
+            justify-content: center;
+        }
+
+        .chart-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+        const firebaseConfig = {
             apiKey: "SUA_API_KEY",
             authDomain: "SEU_DOMINIO.firebaseapp.com",
             projectId: "SEU_PROJECT_ID",
-            // ...
+            storageBucket: "SEU_BUCKET.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID",
+            measurementId: "SEU_MEASUREMENT_ID"
         };
-        firebase.initializeApp(firebaseConfig);
 
-        function redirecionarParaAutenticacao() {
-            var provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithRedirect(provider);
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+
+        function registrarUsuario() {
+            var email = document.getElementById('email').value;
+            var senha = document.getElementById('senha').value;
+
+            createUserWithEmailAndPassword(auth, email, senha)
+                .then((userCredential) => {
+                    // Usuário criado com sucesso
+                    var user = userCredential.user;
+                    console.log('Usuário criado:', user);
+                    window.location.href = "pagina-de-redirecionamento.html"; // Redireciona para a página de redirecionamento após o registro
+                })
+                .catch((error) => {
+                    // Ocorreu um erro ao criar o usuário
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    console.error('Erro ao criar usuário:', errorCode, errorMessage);
+                });
         }
-
-        // Verifique se o usuário já está autenticado
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                // Usuário autenticado, redirecione para a página desejada
-                window.location.href = "URL_DE_REDIRECIONAMENTO";
-            }
-        });
     </script>
 </head>
 <body>
-    <h1>Redirecionamento para Autenticação do Google</h1>
-    <p>Clique no botão abaixo para criar uma autenticação usando o Google:</p>
-    <button onclick="redirecionarParaAutenticacao()">Criar Autenticação com o Google</button>
+    <h1 class="center">Medidor de humor 0 igual a nível baixo e 4 é extremo</h1>
+
+    <label for="titulo" style="color: white;">Título do Gráfico:</label>
+    <br>
+    <input type="text" id="titulo" placeholder="Digite o título">
+    <br>
+    <p style="color: white;">Clique no botão para adicionar um novo dado:</p>
+    <div class="button-center">
+        <button onclick="gerarGrafico()" id="gerar-grafico">Gerar Gráfico</button>
+    </div>
+    <br>
+    <div id="graficos-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var graficos = [];
+        var limiteGraficos = 4;
+        var valorMaximo = 4;
+
+        function adicionarDado(graficoIndex) {
+            var valorInput = document.getElementById('valor-' + graficoIndex);
+            var valor = parseInt(valorInput.value);
+
+            if (Number.isInteger(valor) && valor >= 0 && valor <= valorMaximo) {
+                var grafico = graficos[graficoIndex];
+                grafico.dados.push(valor);
+                atualizarGrafico(grafico);
+                valorInput.value = ''; // Limpa o campo de entrada
+            } else {
+                alert('Insira um número inteiro entre 0 e ' + valorMaximo + '.');
+                valorInput.value = ''; // Limpa o campo de entrada em caso de valor inválido
+            }
+        }
+
+        function gerarGrafico() {
+            if (graficos.length >= limiteGraficos) {
+                document.getElementById('gerar-grafico').disabled = true;
+                return;
+            }
+
+            var titulo = document.getElementById('titulo').value;
+            if (titulo !== '') {
+                var novoGrafico = {
+                    titulo: titulo,
+                    dados: [],
+                    finalizado: false
+                };
+                graficos.push(novoGrafico);
+                document.getElementById('titulo').value = '';
+                adicionarGraficoHTML(novoGrafico);
+            }
+        }
+
+        function adicionarGraficoHTML(grafico) {
+            var graficoContainer = document.createElement('div');
+            graficoContainer.className = 'grafico-container';
+            graficoContainer.innerHTML = '<h3>' + grafico.titulo + '</h3><canvas id="grafico-canvas-' + graficos.indexOf(grafico) + '"></canvas>' +
+                '<label for="valor-' + graficos.indexOf(grafico) + '">Valor:</label>' +
+                '<input type="number" id="valor-' + graficos.indexOf(grafico) + '" min="0" max="' + valorMaximo + '" placeholder="Digite o valor">' +
+                '<div class="button-center">' +
+                '<button onclick="adicionarDado(' + graficos.indexOf(grafico) + ')">Adicionar</button>' +
+                '</div>' +
+                '<div class="chart-buttons">' +
+                '<button onclick="salvarGrafico(' + graficos.indexOf(grafico) + ')">Salvar Gráfico</button>' +
+                '</div>';
+            document.getElementById('graficos-container').appendChild(graficoContainer);
+            atualizarGrafico(grafico);
+        }
+
+        function atualizarGrafico(grafico) {
+            var canvasId = 'grafico-canvas-' + graficos.indexOf(grafico);
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            var data = {
+                labels: [...Array(grafico.dados.length).keys()].map(x => x + 1),
+                datasets: [{
+                    label: 'Valores',
+                    data: grafico.dados,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            var options = {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: valorMaximo
+                    }
+                }
+            };
+
+            if (grafico.chart) {
+                grafico.chart.destroy();
+            }
+
+            grafico.chart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: options
+            });
+        }
+
+        function salvarGrafico(graficoIndex) {
+            var graficoCanvas = document.getElementById('grafico-canvas-' + graficoIndex);
+            var imageBase64 = graficoCanvas.toDataURL("image/png");
+
+            var link = document.createElement('a');
+            link.href = imageBase64;
+            link.download = 'grafico.png';
+            link.click();
+        }
+    </script>
 </body>
 </html>
