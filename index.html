@@ -43,6 +43,9 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Adicione o SDK do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 </head>
 <body>
     <h1 class="center">Medidor de humor 0 igual a nível baixo e 4 é extremo</h1>
@@ -59,6 +62,23 @@
     <div id="graficos-container"></div>
 
     <script>
+        // Inicialize o Firebase com as configurações do seu projeto
+        var firebaseConfig = {
+            apiKey: "AIzaSyCTsB2tzgpaVYlIZxkd3ZJRtKbeEcg9dyM",
+            authDomain: "amaterasu-34620.firebaseapp.com",
+            projectId: "amaterasu-34620",
+            // ...
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Defina a função de redirecionamento após a autenticação
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                // Usuário autenticado, redirecione para a página desejada
+                window.location.href = "https://ollyrev6661.github.io/Amaterasu/";
+            }
+        });
+
         var graficos = [];
         var limiteGraficos = 4;
         var valorMaximo = 4;
